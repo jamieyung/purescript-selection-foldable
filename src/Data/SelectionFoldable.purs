@@ -1,8 +1,6 @@
-{-
-    A Foldable where at most one item is selected. The selected item is
-    guaranteed to be in the Foldable structure. However, no guarantees are made
-    of its uniqueness.
--}
+-- | A Foldable where at most one item is selected. The selected item is
+-- | guaranteed to be in the Foldable structure. However, no guarantees are made
+-- | of its uniqueness.
 
 module Data.SelectionFoldable
     ( SelectionFoldable
@@ -29,10 +27,10 @@ import Prelude (class Eq, class Functor, Unit, unit)
 
 type SelectionFoldable f a = SelectionFoldableWithData f Unit a
 
-fromFoldable :: forall f a. Foldable f => Eq a => f a -> SelectionFoldable f a
+fromFoldable :: forall f a. Foldable f => f a -> SelectionFoldable f a
 fromFoldable = SFWD.fromFoldable
 
-toFoldable :: forall f a. Foldable f => Eq a => SelectionFoldable f a -> f a
+toFoldable :: forall f a. Foldable f => SelectionFoldable f a -> f a
 toFoldable = SFWD.toFoldable
 
 select :: forall f a
@@ -45,7 +43,6 @@ select = SFWD.select unit
 
 selectWith :: forall f a
     . Foldable f
-    => Eq a
     => (a -> IsSelected)
     -> SelectionFoldable f a
     -> SelectionFoldable f a
@@ -62,7 +59,6 @@ selectIndex = SFWD.selectIndex unit
 
 selectWithIndex :: forall i f a
     . FoldableWithIndex i f
-    => Eq a
     => (i -> a -> IsSelected)
     -> SelectionFoldable f a
     -> SelectionFoldable f a

@@ -1,8 +1,6 @@
-{-
-    A Foldable where at most one item is selected, and the selected item has
-    some extra data associated with it. The selected item is guaranteed to be in
-    the Foldable structure. However, no guarantees are made of its uniqueness.
--}
+-- | A Foldable where at most one item is selected, and the selected item has
+-- | some extra data associated with it. The selected item is guaranteed to be in
+-- | the Foldable structure. However, no guarantees are made of its uniqueness.
 
 module Data.SelectionFoldableWithData
     ( SelectionFoldableWithData
@@ -84,15 +82,13 @@ instance filterableSelectionFoldable :: Filterable f => Filterable (SelectionFol
     filter f (Private_ xs mSel) =
         Private_ (filter f xs) (mSel >>= \(Tuple _ a) -> if f a then mSel else Nothing)
 
-fromFoldable :: forall f d a. Foldable f => Eq a => f a -> SelectionFoldableWithData f d a
+fromFoldable :: forall f d a. Foldable f => f a -> SelectionFoldableWithData f d a
 fromFoldable xs = Private_ xs Nothing
 
-toFoldable :: forall f d a. Foldable f => Eq a => SelectionFoldableWithData f d a -> f a
+toFoldable :: forall f d a. Foldable f => SelectionFoldableWithData f d a -> f a
 toFoldable (Private_ xs _) = xs
 
-{-
-    Selects the first element `a` such that `a == x`.
--}
+-- | Selects the first element `a` such that `a == x`.
 select :: forall f d a
     . Foldable f
     => Eq a
@@ -102,12 +98,9 @@ select :: forall f d a
     -> SelectionFoldableWithData f d a
 select d x = selectWith d (_ == x)
 
-{-
-    Selects the first element `a` such that `p a == true`.
--}
+-- | Selects the first element `a` such that `p a == true`.
 selectWith :: forall f d a
     . Foldable f
-    => Eq a
     => d
     -> (a -> IsSelected)
     -> SelectionFoldableWithData f d a
@@ -138,7 +131,6 @@ selectIndex d i = selectWithIndex d (\i' _ -> i == i')
 
 selectWithIndex :: forall i f d a
     . FoldableWithIndex i f
-    => Eq a
     => d
     -> (i -> a -> IsSelected)
     -> SelectionFoldableWithData f d a
@@ -166,11 +158,9 @@ selected (Private_ _ mSel) = mSel
 selected_ :: forall f d a. SelectionFoldableWithData f d a -> Maybe a
 selected_ (Private_ _ mSel) = map snd mSel
 
-{-
-    If there exist multiple elements `a` such that `p a == true`, the function
-    will be invoked with `true` as the first argument. No guarantee of
-    uniqueness is made; that is left up to the user.
--}
+-- | If there exist multiple elements `a` such that `p a == true`, the function
+-- | will be invoked with `true` as the first argument. No guarantee of
+-- | uniqueness is made; that is left up to the user.
 mapSelected :: forall f d a e b
     . Foldable f
     => Functor f
