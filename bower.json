@@ -3,6 +3,10 @@
   "authors": [
     "Jamie Yung <jamie.yung286@gmail.com>"
   ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jamieyung/purescript-selection-foldable.git"
+  },
   "license": "BSD-3-Clause",
   "homepage": "",
   "ignore": [
