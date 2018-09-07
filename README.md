@@ -1,5 +1,3 @@
-<!-- [![Latest release](http://img.shields.io/github/release/slamdata/purescript-halogen.svg)](https://github.com/slamdata/purescript-halogen/releases) -->
-
 # SelectionFoldable
 
 The `SelectionFoldable` type represents a Foldable structure (eg. Array, List)
@@ -229,3 +227,7 @@ mapSelected (\isSelected x -> if isSelected then "a" else "b") xs
 ## License
 
 Licensed under a BSD 3-Clause license
+
+## Documentation
+
+- Module documentation is [published on Pursuit](https://pursuit.purescript.org/packages/purescript-selection-foldable).
