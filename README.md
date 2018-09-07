@@ -212,7 +212,7 @@ the selected item:
 xs = SF.fromFoldable [1,2,1] # SF.select 1
 
 mapSelected (\isSelected x -> if isSelected then "a" else "b") xs
--- (SelectionFoldableWithData ["a","b","a"] Just (Tuple uni "a")))
+-- (SelectionFoldableWithData ["a","b","a"] Just (Tuple unit "a")))
 -- Note how both the first and last items were treated as if they were selected
 ```
 
