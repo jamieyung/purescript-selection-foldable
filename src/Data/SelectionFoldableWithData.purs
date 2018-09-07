@@ -27,7 +27,7 @@ import Data.Foldable (class Foldable, foldl, foldr)
 import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex)
 import Data.Functor (map)
 import Data.Maybe (Maybe(..), fromMaybe)
-import Data.Tuple (Tuple(..), fst, snd)
+import Data.Tuple (Tuple(..), snd)
 import Prelude (class Eq, class Functor, class Show, bind, show, ($), (&&), (<>), (==), (>>=))
 
 data SelectionFoldableWithData f d a
@@ -36,7 +36,7 @@ data SelectionFoldableWithData f d a
 type IsSelected = Boolean
 
 instance eqSelectionFoldableWithData :: (Eq (f a), Eq d, Eq a) => Eq (SelectionFoldableWithData f d a) where
-    eq (Private_ lxs lMSel) (Private_ rxs rMSel) = (lxs == rxs) && (lMSel == rMSel)
+    eq (Private_ xsL mSelL) (Private_ xsR mSelR) = (xsL == xsR) && (mSelL == mSelR)
 
 instance showSelectionFoldableWithData :: (Show (f a), Show d, Show a) => Show (SelectionFoldableWithData f d a) where
     show (Private_ xs mSel) =
@@ -51,38 +51,38 @@ instance compactableSelectionFoldableWithData :: (Functor f, Compactable f) => C
 
 instance filterableSelectionFoldable :: Filterable f => Filterable (SelectionFoldableWithData f d) where
     partitionMap f (Private_ xs mSel) =
-        { left: Private_ lxs lMSel
-        , right: Private_ rxs rMSel
+        { left: Private_ xsL mSelL
+        , right: Private_ xsR mSelR
         }
         where
-        { left: lxs, right: _ } = partitionMap f xs
-        { left: _, right: rxs } = partitionMap f xs
-        rMSel = mSel >>= \sel -> case f (snd sel) of
+        { left: xsL, right: _ } = partitionMap f xs
+        { left: _, right: xsR } = partitionMap f xs
+        mSelR = mSel >>= \(Tuple d a) -> case f a of
             Left _ -> Nothing
-            Right x -> Just $ Tuple (fst sel) x
-        lMSel = mSel >>= \sel -> case f (snd sel) of
-            Left x -> Just $ Tuple (fst sel) x
+            Right x -> Just $ Tuple d x
+        mSelL = mSel >>= \(Tuple d a) -> case f a of
+            Left x -> Just $ Tuple d x
             Right _ -> Nothing
 
     partition f (Private_ xs mSel) =
-        { no: Private_ lxs lMSel
-        , yes: Private_ rxs rMSel
+        { no: Private_ xsL mSelL
+        , yes: Private_ xsR mSelR
         }
         where
-        { no: lxs, yes: _ } = partition f xs
-        { no: _, yes: rxs } = partition f xs
-        lMSel = mSel >>= \sel -> if f (snd sel) then Nothing else mSel
-        rMSel = mSel >>= \sel -> if f (snd sel) then mSel else Nothing
+        { no: xsL, yes: _ } = partition f xs
+        { no: _, yes: xsR } = partition f xs
+        mSelL = mSel >>= \(Tuple _ a) -> if f a then Nothing else mSel
+        mSelR = mSel >>= \(Tuple _ a) -> if f a then mSel else Nothing
 
     filterMap f (Private_ xs mSel) =
         Private_ (filterMap f xs) mSel' where
         mSel' = do
-            sel <- mSel
-            b <- f (snd sel)
-            Just $ Tuple (fst sel) b
+            (Tuple d a) <- mSel
+            b <- f a
+            Just $ Tuple d b
 
     filter f (Private_ xs mSel) =
-        Private_ (filter f xs) (mSel >>= \sel -> if f (snd sel) then mSel else Nothing)
+        Private_ (filter f xs) (mSel >>= \(Tuple _ a) -> if f a then mSel else Nothing)
 
 fromFoldable :: forall f d a. Foldable f => Eq a => f a -> SelectionFoldableWithData f d a
 fromFoldable xs = Private_ xs Nothing
