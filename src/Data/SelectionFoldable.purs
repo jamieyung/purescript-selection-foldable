@@ -1,6 +1,6 @@
--- | A Foldable where at most one item is selected. The selected item is
--- | guaranteed to be in the Foldable structure. However, no guarantees are made
--- | of its uniqueness.
+-- | See the `SelectionFoldableWithData` module docs for function comments, as
+-- | all of the functions in this module are convenience aliases for the ones
+-- | in that module (for the case where there is no data).
 
 module Data.SelectionFoldable
     ( SelectionFoldable
@@ -26,6 +26,11 @@ import Data.SelectionFoldableWithData as SFWD
 import Data.Tuple (snd)
 import Prelude (class Eq, class Functor, Unit, unit)
 
+-- | A Foldable where at most one item is selected. This is an alias for a
+-- | `SelectionFoldableWithData` that has no associated data.
+-- |
+-- | - `f` is the type of the Foldable that will contain the items.
+-- | - `a` is the type of the items.
 type SelectionFoldable f a = SelectionFoldableWithData f Unit a
 
 fromFoldable :: forall f a. Foldable f => f a -> SelectionFoldable f a
@@ -51,7 +56,6 @@ selectWith = SFWD.selectWith unit
 
 selectIndex :: forall i f a
     . FoldableWithIndex i f
-    => Eq a
     => Eq i
     => i
     -> SelectionFoldable f a

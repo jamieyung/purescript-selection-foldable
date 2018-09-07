@@ -1,7 +1,3 @@
--- | A Foldable where at most one item is selected, and the selected item has
--- | some extra data associated with it. The selected item is guaranteed to be in
--- | the Foldable structure. However, no guarantees are made of its uniqueness.
-
 module Data.SelectionFoldableWithData
     ( SelectionFoldableWithData
     , IsSelected
@@ -29,9 +25,21 @@ import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..), snd)
 import Prelude (class Eq, class Functor, class Show, bind, show, ($), (&&), (<>), (==), (>>=))
 
+-- | A Foldable where at most one item is selected, and the selected item has
+-- | some extra data associated with it. The selected item is guaranteed to be
+-- | in the Foldable structure. However, no guarantees are made regarding
+-- | uniqueness of the items (see the README for more info).
+-- |
+-- | The data constructor is kept private in order to maintain the desired
+-- | invariants.
+-- |
+-- | - `f` is the type of the Foldable that will contain the items.
+-- | - `d` is the type of the data associated with the optionally selected item.
+-- | - `a` is the type of the items.
 data SelectionFoldableWithData f d a
     = Private_ (f a) (Maybe (Tuple d a))
 
+-- | A type alias used for better clarity in type signatures.
 type IsSelected = Boolean
 
 instance eqSelectionFoldableWithData :: (Eq (f a), Eq d, Eq a) => Eq (SelectionFoldableWithData f d a) where
@@ -83,13 +91,19 @@ instance filterableSelectionFoldable :: Filterable f => Filterable (SelectionFol
     filter f (Private_ xs mSel) =
         Private_ (filter f xs) (mSel >>= \(Tuple _ a) -> if f a then mSel else Nothing)
 
+-- | Constructs a `SelectionFoldableWithData` from a Foldable structure of
+-- | items.
 fromFoldable :: forall f d a. Foldable f => f a -> SelectionFoldableWithData f d a
 fromFoldable xs = Private_ xs Nothing
 
+-- | Extracts the Foldable structure of items from a
+-- | `SelectionFoldableWithData`.
 toFoldable :: forall f d a. Foldable f => SelectionFoldableWithData f d a -> f a
 toFoldable (Private_ xs _) = xs
 
--- | Selects the first element `a` such that `a == x`.
+-- | Selects the first element `a` such that `a == x`. If such an element is
+-- | found, it is selected and the provided `d` is used as the associated data.
+-- | If not, nothing happens.
 select :: forall f d a
     . Foldable f
     => Eq a
@@ -99,7 +113,9 @@ select :: forall f d a
     -> SelectionFoldableWithData f d a
 select d x = selectWith d (_ == x)
 
--- | Selects the first element `a` such that `p a == true`.
+-- | Selects the first element `a` such that `p a == true`. If such an element
+-- | is found, it is selected and the provided `d` is used as the associated
+-- | data. If not, nothing happens.
 selectWith :: forall f d a
     . Foldable f
     => d
@@ -120,9 +136,11 @@ selectWith d p (Private_ xs curMSel) = (Private_ xs newMSel) where
         Just _ -> z
         Nothing -> if p x then Just x else Nothing
 
+-- | Selects the element at index `i'` such that `i' == i`. If such an element
+-- | is found, it is selected and the provided `d` is used as the associated
+-- | data. If not, nothing happens.
 selectIndex :: forall i f d a
     . FoldableWithIndex i f
-    => Eq a
     => Eq i
     => d
     -> i
@@ -130,6 +148,9 @@ selectIndex :: forall i f d a
     -> SelectionFoldableWithData f d a
 selectIndex d i = selectWithIndex d (\i' _ -> i == i')
 
+-- | Selects the first element `a` such that `p i a == true` where `i` is the
+-- | index of `a`. If such an element is found, it is selected and the provided
+-- | `d` is used as the associated data. If not, nothing happens.
 selectWithIndex :: forall i f d a
     . FoldableWithIndex i f
     => d
@@ -150,12 +171,16 @@ selectWithIndex d p (Private_ xs curMSel) = (Private_ xs newMSel) where
         Just _ -> z
         Nothing -> if p i x then Just (Tuple i x) else Nothing
 
+-- | Clears the selection and its associated data.
 deselect :: forall f d a. SelectionFoldableWithData f d a -> SelectionFoldableWithData f d a
 deselect (Private_ xs _) = Private_ xs Nothing
 
+-- | Returns the selected item and its associated data as a Tuple (if they
+-- | exist).
 selected :: forall f d a. SelectionFoldableWithData f d a -> Maybe (Tuple d a)
 selected (Private_ _ mSel) = mSel
 
+-- | Returns the selected item (if it exists).
 selected_ :: forall f d a. SelectionFoldableWithData f d a -> Maybe a
 selected_ (Private_ _ mSel) = map snd mSel
 
@@ -178,6 +203,9 @@ mapSelected fns (Private_ xs mSel) = Private_ (map f xs) mSel' where
         else
             fns.rest x
 
+-- | Performs a foldr, using the provided functions to transform the items and
+-- | the data. The `sel` function is used for all items `a` that are equal to
+-- | the selected item, and the `rest` function is used for the other items.
 foldrSelected :: forall f d a b
     . Foldable f
     => Eq a
@@ -197,6 +225,9 @@ foldrSelected fns b (Private_ xs mSel) = foldr accFn b xs where
             else
                 fns.rest x z
 
+-- | Performs a foldl, using the provided functions to transform the items and
+-- | the data. The `sel` function is used for all items `a` that are equal to
+-- | the selected item, and the `rest` function is used for the other items.
 foldlSelected :: forall f d a b
     . Foldable f
     => Eq a
