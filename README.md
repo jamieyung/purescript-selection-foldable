@@ -54,7 +54,7 @@ x2 = SF.fromFoldable (Cons "a" Nil)
 
 -- This seems a bit silly, but it's possible!
 x3 :: SF.SelectionFoldable Maybe Boolean
-x3 = SF.fromFoldable Just true
+x3 = SF.fromFoldable (Just true)
 
 -- Here `Bool` is the type of user-provided data associated with selected items.
 -- The compiler will often require you to provide this type annotation.
