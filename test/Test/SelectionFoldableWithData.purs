@@ -295,3 +295,15 @@ spec = describe "SelectionFoldableWithData" do
                         } []
                 )
                 (["1!","2","3"])
+
+    describe "foldlSelected" do
+        it "foldlSelected" do
+            shouldEqual
+                (SFWD.fromFoldable [1,2,3]
+                    # SFWD.select "!" 1
+                    # SFWD.foldlSelected
+                        { sel: \z (Tuple s x) -> (show x <> s) : z
+                        , rest: \z x -> (show x) : z
+                        } []
+                )
+                (["3","2","1!"])

@@ -16,6 +16,7 @@ module Data.SelectionFoldableWithData
     , selected_
     , mapSelected
     , foldrSelected
+    , foldlSelected
     ) where
 
 import Data.Compactable (compactDefault, separateDefault)
@@ -195,3 +196,22 @@ foldrSelected fns b (Private_ xs mSel) = foldr accFn b xs where
                 fns.sel sel z
             else
                 fns.rest x z
+
+foldlSelected :: forall f d a b
+    . Foldable f
+    => Eq a
+    => { sel :: b -> Tuple d a -> b, rest :: b -> a -> b }
+    -> b
+    -> SelectionFoldableWithData f d a
+    -> b
+foldlSelected fns b (Private_ xs mSel) = foldl accFn b xs where
+    accFn :: b -> a -> b
+    accFn z x = case mSel of
+        Nothing ->
+            fns.rest z x
+
+        Just sel ->
+            if x == snd sel then
+                fns.sel z sel
+            else
+                fns.rest z x

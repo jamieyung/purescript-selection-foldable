@@ -273,3 +273,17 @@ spec = describe "SelectionFoldable" do
                     ) []
                 )
                 (["1!","2","3"])
+
+    describe "foldlSelected" do
+        it "foldlSelected" do
+            shouldEqual
+                (SF.fromFoldable [1,2,3]
+                    # SF.select 1
+                    # SF.foldlSelected (\isSelected z x ->
+                        if isSelected then
+                            (show x <> "!") : z
+                        else
+                            (show x) : z
+                    ) []
+                )
+                (["3","2","1!"])

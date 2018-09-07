@@ -14,13 +14,14 @@ module Data.SelectionFoldable
     , selected
     , mapSelected
     , foldrSelected
+    , foldlSelected
     ) where
 
 import Data.Foldable (class Foldable)
 import Data.FoldableWithIndex (class FoldableWithIndex)
 import Data.Functor (map)
 import Data.Maybe (Maybe)
-import Data.SelectionFoldableWithData (SelectionFoldableWithData, IsSelected)
+import Data.SelectionFoldableWithData (IsSelected, SelectionFoldableWithData)
 import Data.SelectionFoldableWithData as SFWD
 import Data.Tuple (snd)
 import Prelude (class Eq, class Functor, Unit, unit)
@@ -88,3 +89,13 @@ foldrSelected :: forall f a b
     -> b
 foldrSelected f b =
     SFWD.foldrSelected { sel: \t z -> f true (snd t) z, rest: f false } b
+
+foldlSelected :: forall f a b
+    . Foldable f
+    => Eq a
+    => (IsSelected -> b -> a -> b)
+    -> b
+    -> SelectionFoldable f a
+    -> b
+foldlSelected f b =
+    SFWD.foldlSelected { sel: \z t -> f true z (snd t), rest: f false } b
