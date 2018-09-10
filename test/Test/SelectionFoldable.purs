@@ -1,8 +1,9 @@
 module Test.SelectionFoldable where
 
-import Data.Array ((:))
+import Data.Array (foldr, (:))
 import Data.Either (Either(..))
 import Data.Filterable (filter, filterMap, partition, partitionMap)
+import Data.FoldableWithIndex (foldrWithIndex)
 import Data.Maybe (Maybe(..))
 import Data.SelectionFoldable as SF
 import Prelude (Unit, discard, map, show, (#), (+), (<>), (==), (>), (>=))
@@ -59,6 +60,22 @@ spec = describe "SelectionFoldable" do
                     # show
                 )
                 ("(SelectionFoldableWithData [2,3,4] (Just (Tuple unit 2)))")
+
+    describe "Foldable instance" do
+        it "foldr" do
+            shouldEqual
+                ((SF.fromFoldable [1,2,3])
+                    # foldr (\n z -> show n <> z) ""
+                )
+                ("123")
+
+    describe "FoldableWithIndex instance" do
+        it "foldrWithIndex" do
+            shouldEqual
+                ((SF.fromFoldable ["a","b","c"])
+                    # foldrWithIndex (\i c z -> c <> show i <> z) ""
+                )
+                ("a0b1c2")
 
     describe "Filterable instance" do
         it "partitionMap" do

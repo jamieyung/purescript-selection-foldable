@@ -3,6 +3,8 @@ module Test.SelectionFoldableWithData where
 import Data.Array ((:))
 import Data.Either (Either(..))
 import Data.Filterable (filter, filterMap, partition, partitionMap)
+import Data.Foldable (foldr)
+import Data.FoldableWithIndex (foldrWithIndex)
 import Data.Maybe (Maybe(..))
 import Data.SelectionFoldableWithData (SelectionFoldableWithData)
 import Data.SelectionFoldableWithData as SFWD
@@ -63,6 +65,22 @@ spec = describe "SelectionFoldableWithData" do
                     # show
                 )
                 ("(SelectionFoldableWithData [2,3,4] (Just (Tuple unit 2)))")
+
+    describe "Foldable instance" do
+        it "foldr" do
+            shouldEqual
+                ((SFWD.fromFoldable [1,2,3] :: SFArrUnitInt)
+                    # foldr (\n z -> show n <> z) ""
+                )
+                ("123")
+
+    describe "FoldableWithIndex instance" do
+        it "foldrWithIndex" do
+            shouldEqual
+                ((SFWD.fromFoldable ["a","b","c"])
+                    # foldrWithIndex (\i c z -> c <> show i <> z) ""
+                )
+                ("a0b1c2")
 
     describe "Filterable instance" do
         it "partitionMap" do

@@ -20,8 +20,8 @@ module Data.SelectionFoldableWithData
 import Data.Compactable (compactDefault, separateDefault)
 import Data.Either (Either(..))
 import Data.Filterable (class Compactable, class Filterable, filter, filterMap, partition, partitionMap)
-import Data.Foldable (class Foldable, foldl, foldr)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex)
+import Data.Foldable (class Foldable, foldMap, foldl, foldr)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldMapWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Functor (map)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..), snd)
@@ -53,6 +53,16 @@ instance showSelectionFoldableWithData :: (Show (f a), Show d, Show a) => Show (
 
 instance functorSelectionFoldableWithData :: Functor f => Functor (SelectionFoldableWithData f d) where
     map f (Private_ xs mSel) = Private_ (map f xs) (map (map f) mSel)
+
+instance foldableSelectionFoldableWithData :: Foldable f => Foldable (SelectionFoldableWithData f d) where
+    foldr f z (Private_ xs _) = foldr f z xs
+    foldl f z (Private_ xs _) = foldl f z xs
+    foldMap f (Private_ xs _) = foldMap f xs
+
+instance foldableWithIndexSelectionFoldableWithData :: FoldableWithIndex i f => FoldableWithIndex i (SelectionFoldableWithData f d) where
+    foldrWithIndex f z (Private_ xs _) = foldrWithIndex f z xs
+    foldlWithIndex f z (Private_ xs _) = foldlWithIndex f z xs
+    foldMapWithIndex f (Private_ xs _) = foldMapWithIndex f xs
 
 instance compactableSelectionFoldableWithData :: (Functor f, Compactable f) => Compactable (SelectionFoldableWithData f d) where
     compact = compactDefault
