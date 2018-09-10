@@ -274,6 +274,20 @@ spec = describe "SelectionFoldable" do
                 )
                 (["1!","2","3"])
 
+    describe "foldrWithIndexSelected" do
+        it "foldrWithIndexSelected" do
+            shouldEqual
+                (SF.fromFoldable ["a", "b", "c"]
+                    # SF.select "a"
+                    # SF.foldrWithIndexSelected (\isSelected i x z ->
+                        if isSelected then
+                            (x <> show i <> "!") : z
+                        else
+                            (x <> show i) : z
+                    ) []
+                )
+                (["a0!", "b1", "c2"])
+
     describe "foldlSelected" do
         it "foldlSelected" do
             shouldEqual
@@ -287,3 +301,17 @@ spec = describe "SelectionFoldable" do
                     ) []
                 )
                 (["3","2","1!"])
+
+    describe "foldlWithIndexSelected" do
+        it "foldlWithIndexSelected" do
+            shouldEqual
+                (SF.fromFoldable ["a", "b", "c"]
+                    # SF.select "a"
+                    # SF.foldlWithIndexSelected (\isSelected i z x ->
+                        if isSelected then
+                            (x <> show i <> "!") : z
+                        else
+                            (x <> show i) : z
+                    ) []
+                )
+                (["c2", "b1", "a0!"])

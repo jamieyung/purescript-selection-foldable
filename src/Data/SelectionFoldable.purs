@@ -14,7 +14,9 @@ module Data.SelectionFoldable
     , selected
     , mapSelected
     , foldrSelected
+    , foldrWithIndexSelected
     , foldlSelected
+    , foldlWithIndexSelected
     ) where
 
 import Data.Foldable (class Foldable)
@@ -95,6 +97,17 @@ foldrSelected :: forall f a b
 foldrSelected f b =
     SFWD.foldrSelected { sel: \t z -> f true (snd t) z, rest: f false } b
 
+foldrWithIndexSelected :: forall i f a b
+    . FoldableWithIndex i f
+    => Eq a
+    => (IsSelected -> i -> a -> b -> b)
+    -> b
+    -> SelectionFoldable f a
+    -> b
+foldrWithIndexSelected f b =
+    SFWD.foldrWithIndexSelected
+        { sel: \i t z -> f true i (snd t) z, rest: f false } b
+
 foldlSelected :: forall f a b
     . Foldable f
     => Eq a
@@ -104,3 +117,14 @@ foldlSelected :: forall f a b
     -> b
 foldlSelected f b =
     SFWD.foldlSelected { sel: \z t -> f true z (snd t), rest: f false } b
+
+foldlWithIndexSelected :: forall i f a b
+    . FoldableWithIndex i f
+    => Eq a
+    => (IsSelected -> i -> b -> a -> b)
+    -> b
+    -> SelectionFoldable f a
+    -> b
+foldlWithIndexSelected f b =
+    SFWD.foldlWithIndexSelected
+        { sel: \i z t -> f true i z (snd t), rest: f false } b

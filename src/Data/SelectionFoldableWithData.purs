@@ -12,14 +12,16 @@ module Data.SelectionFoldableWithData
     , selected_
     , mapSelected
     , foldrSelected
+    , foldrWithIndexSelected
     , foldlSelected
+    , foldlWithIndexSelected
     ) where
 
 import Data.Compactable (compactDefault, separateDefault)
 import Data.Either (Either(..))
 import Data.Filterable (class Compactable, class Filterable, filter, filterMap, partition, partitionMap)
 import Data.Foldable (class Foldable, foldl, foldr)
-import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex)
+import Data.FoldableWithIndex (class FoldableWithIndex, foldlWithIndex, foldrWithIndex)
 import Data.Functor (map)
 import Data.Maybe (Maybe(..), fromMaybe)
 import Data.Tuple (Tuple(..), snd)
@@ -228,6 +230,29 @@ foldrSelected fns b (Private_ xs mSel) = foldr accFn b xs where
             else
                 fns.rest x z
 
+-- | Performs a foldrWithIndex, using the provided functions to transform the
+-- | items and the data. The `sel` function is used for all items `a` that are
+-- | equal to the selected item, and the `rest` function is used for the other
+-- | items.
+foldrWithIndexSelected :: forall i f d a b
+    . FoldableWithIndex i f
+    => Eq a
+    => { sel :: i -> Tuple d a -> b -> b, rest :: i -> a -> b -> b }
+    -> b
+    -> SelectionFoldableWithData f d a
+    -> b
+foldrWithIndexSelected fns b (Private_ xs mSel) = foldrWithIndex accFn b xs where
+    accFn :: i -> a -> b -> b
+    accFn i x z = case mSel of
+        Nothing ->
+            fns.rest i x z
+
+        Just sel ->
+            if x == snd sel then
+                fns.sel i sel z
+            else
+                fns.rest i x z
+
 -- | Performs a foldl, using the provided functions to transform the items and
 -- | the data. The `sel` function is used for all items `a` that are equal to
 -- | the selected item, and the `rest` function is used for the other items.
@@ -249,3 +274,26 @@ foldlSelected fns b (Private_ xs mSel) = foldl accFn b xs where
                 fns.sel z sel
             else
                 fns.rest z x
+
+-- | Performs a foldlWithIndex, using the provided functions to transform the
+-- | items and the data. The `sel` function is used for all items `a` that are
+-- | equal to the selected item, and the `rest` function is used for the other
+-- | items.
+foldlWithIndexSelected :: forall i f d a b
+    . FoldableWithIndex i f
+    => Eq a
+    => { sel :: i -> b -> Tuple d a -> b, rest :: i -> b -> a -> b }
+    -> b
+    -> SelectionFoldableWithData f d a
+    -> b
+foldlWithIndexSelected fns b (Private_ xs mSel) = foldlWithIndex accFn b xs where
+    accFn :: i -> b -> a -> b
+    accFn i z x = case mSel of
+        Nothing ->
+            fns.rest i z x
+
+        Just sel ->
+            if x == snd sel then
+                fns.sel i z sel
+            else
+                fns.rest i z x

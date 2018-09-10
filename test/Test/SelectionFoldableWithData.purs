@@ -328,6 +328,18 @@ spec = describe "SelectionFoldableWithData" do
                 )
                 (["1!","2","3"])
 
+    describe "foldrWithIndexSelected" do
+        it "foldrWithIndexSelected" do
+            shouldEqual
+                (SFWD.fromFoldable ["a", "b", "c"]
+                    # SFWD.select "!" "a"
+                    # SFWD.foldrWithIndexSelected
+                        { sel: \i (Tuple s x) z -> (x <> show i <> s) : z
+                        , rest: \i x z -> (x <> show i) : z
+                        } []
+                )
+                (["a0!", "b1", "c2"])
+
     describe "foldlSelected" do
         it "foldlSelected" do
             shouldEqual
@@ -339,3 +351,15 @@ spec = describe "SelectionFoldableWithData" do
                         } []
                 )
                 (["3","2","1!"])
+
+    describe "foldlWithIndexSelected" do
+        it "foldlWithIndexSelected" do
+            shouldEqual
+                (SFWD.fromFoldable ["a", "b", "c"]
+                    # SFWD.select "!" "a"
+                    # SFWD.foldlWithIndexSelected
+                        { sel: \i z (Tuple s x) -> (x <> show i <> s) : z
+                        , rest: \i z x -> (x <> show i) : z
+                        } []
+                )
+                (["c2", "b1", "a0!"])
