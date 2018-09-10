@@ -20,11 +20,11 @@ module Data.SelectionFoldable
 import Data.Foldable (class Foldable)
 import Data.FoldableWithIndex (class FoldableWithIndex)
 import Data.Functor (map)
-import Data.Maybe (Maybe)
+import Data.Maybe (Maybe(..))
 import Data.SelectionFoldableWithData (IsSelected, SelectionFoldableWithData)
 import Data.SelectionFoldableWithData as SFWD
 import Data.Tuple (snd)
-import Prelude (class Eq, class Functor, Unit, unit)
+import Prelude (class Eq, class Functor, Unit, const, unit)
 
 -- | A Foldable where at most one item is selected. This is an alias for a
 -- | `SelectionFoldableWithData` that has no associated data.
@@ -52,7 +52,7 @@ selectWith :: forall f a
     => (a -> IsSelected)
     -> SelectionFoldable f a
     -> SelectionFoldable f a
-selectWith = SFWD.selectWith unit
+selectWith p = SFWD.selectWith \x -> if p x then Just unit else Nothing
 
 selectIndex :: forall i f a
     . FoldableWithIndex i f
@@ -60,14 +60,15 @@ selectIndex :: forall i f a
     => i
     -> SelectionFoldable f a
     -> SelectionFoldable f a
-selectIndex = SFWD.selectIndex unit
+selectIndex = SFWD.selectIndex (const unit)
 
 selectWithIndex :: forall i f a
     . FoldableWithIndex i f
     => (i -> a -> IsSelected)
     -> SelectionFoldable f a
     -> SelectionFoldable f a
-selectWithIndex = SFWD.selectWithIndex unit
+selectWithIndex p =
+    SFWD.selectWithIndex \i x -> if p i x then Just unit else Nothing
 
 deselect :: forall f a. SelectionFoldable f a -> SelectionFoldable f a
 deselect = SFWD.deselect

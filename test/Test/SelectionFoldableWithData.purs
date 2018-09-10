@@ -7,7 +7,7 @@ import Data.Maybe (Maybe(..))
 import Data.SelectionFoldableWithData (SelectionFoldableWithData)
 import Data.SelectionFoldableWithData as SFWD
 import Data.Tuple (Tuple(..))
-import Prelude (Unit, discard, map, show, unit, (#), (+), (<>), (==), (>), (>=))
+import Prelude (Unit, const, discard, map, show, unit, (#), (+), (<>), (==), (>), (>=))
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldEqual, shouldNotEqual)
 
@@ -155,64 +155,96 @@ spec = describe "SelectionFoldableWithData" do
     describe "selectWith" do
         it "match" do
             shouldEqual
-                (SFWD.fromFoldable [1] # SFWD.selectWith unit (_ == 1) # show)
+                (SFWD.fromFoldable [1]
+                    # SFWD.selectWith
+                        (\x -> if x == 1 then Just unit else Nothing)
+                    # show)
                 ("(SelectionFoldableWithData [1] (Just (Tuple unit 1)))")
 
         it "no match" do
             shouldEqual
-                (SFWD.fromFoldable [1] # SFWD.selectWith unit (_ == 2) # show)
+                (SFWD.fromFoldable [1]
+                    # SFWD.selectWith
+                        (\x -> if x == 2 then Just unit else Nothing)
+                    # show)
                 ("(SelectionFoldableWithData [1] Nothing)")
 
         it "selects the first match" do
             shouldEqual
-                (SFWD.fromFoldable [1, 2, 3] # SFWD.selectWith unit (_ >= 2) # show)
+                (SFWD.fromFoldable [1, 2, 3]
+                    # SFWD.selectWith
+                        (\x -> if x >= 2 then Just unit else Nothing)
+                    # show)
                 ("(SelectionFoldableWithData [1,2,3] (Just (Tuple unit 2)))")
 
     describe "selectIndex" do
         it "match" do
             shouldEqual
-                (SFWD.fromFoldable [1] # SFWD.selectIndex unit 0 # show)
+                (SFWD.fromFoldable [1]
+                    # SFWD.selectIndex (const unit) 0 # show)
                 ("(SelectionFoldableWithData [1] (Just (Tuple unit 1)))")
 
         it "no match" do
             shouldEqual
-                (SFWD.fromFoldable [1] # SFWD.selectIndex unit 1 # show)
+                (SFWD.fromFoldable [1]
+                    # SFWD.selectIndex (const unit) 1 # show)
                 ("(SelectionFoldableWithData [1] Nothing)")
 
         it "select overrides any previous selection" do
             shouldEqual
-                (SFWD.fromFoldable [1, 2] # SFWD.selectIndex unit 0 # SFWD.selectIndex unit 1 # show)
+                (SFWD.fromFoldable [1, 2]
+                    # SFWD.selectIndex (const unit) 0
+                    # SFWD.selectIndex (const unit) 1
+                    # show)
                 ("(SelectionFoldableWithData [1,2] (Just (Tuple unit 2)))")
 
         it "attempting to select an element not found in the structure does nothing" do
             shouldEqual
-                (SFWD.fromFoldable [1, 2] # SFWD.selectIndex unit 0 # SFWD.selectIndex unit 5 # show)
+                (SFWD.fromFoldable [1, 2]
+                    # SFWD.selectIndex (const unit) 0
+                    # SFWD.selectIndex (const unit) 5
+                    # show)
                 ("(SelectionFoldableWithData [1,2] (Just (Tuple unit 1)))")
 
     describe "selectWithIndex" do
         it "match index" do
             shouldEqual
-                (SFWD.fromFoldable [1] # SFWD.selectWithIndex unit (\i _ -> i == 0) # show)
+                (SFWD.fromFoldable [1]
+                    # SFWD.selectWithIndex
+                        (\i _ -> if i == 0 then Just unit else Nothing)
+                    # show)
                 ("(SelectionFoldableWithData [1] (Just (Tuple unit 1)))")
 
         it "match element" do
             shouldEqual
-                (SFWD.fromFoldable [1] # SFWD.selectWithIndex unit (\_ x -> x == 1) # show)
+                (SFWD.fromFoldable [1]
+                    # SFWD.selectWithIndex
+                        (\_ x -> if x == 1 then Just unit else Nothing)
+                    # show)
                 ("(SelectionFoldableWithData [1] (Just (Tuple unit 1)))")
 
         it "no match index" do
             shouldEqual
-                (SFWD.fromFoldable [1] # SFWD.selectWithIndex unit (\i _ -> i == 2) # show)
+                (SFWD.fromFoldable [1]
+                    # SFWD.selectWithIndex
+                        (\i _ -> if i == 2 then Just unit else Nothing)
+                    # show)
                 ("(SelectionFoldableWithData [1] Nothing)")
 
         it "no match element" do
             shouldEqual
-                (SFWD.fromFoldable [1] # SFWD.selectWithIndex unit (\_ x -> x == 2) # show)
+                (SFWD.fromFoldable [1]
+                    # SFWD.selectWithIndex
+                        (\_ x -> if x == 2 then Just unit else Nothing)
+                    # show)
                 ("(SelectionFoldableWithData [1] Nothing)")
 
         it "selects the first match" do
             shouldEqual
-                (SFWD.fromFoldable [1, 2, 3] # SFWD.selectWithIndex unit (\i _ -> i >= 1) # show)
+                (SFWD.fromFoldable [1, 2, 3]
+                    # SFWD.selectWithIndex
+                        (\i _ -> if i >= 1 then Just unit else Nothing)
+                    # show)
                 ("(SelectionFoldableWithData [1,2,3] (Just (Tuple unit 2)))")
 
     describe "deselect" do

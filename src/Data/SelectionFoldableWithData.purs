@@ -111,65 +111,68 @@ select :: forall f d a
     -> a
     -> SelectionFoldableWithData f d a
     -> SelectionFoldableWithData f d a
-select d x = selectWith d (_ == x)
+select d x = selectWith (\x' -> if x' == x then Just d else Nothing)
 
 -- | Selects the first element `a` such that `p a == true`. If such an element
--- | is found, it is selected and the provided `d` is used as the associated
--- | data. If not, nothing happens.
+-- | is found, it is selected and the provided function `f` is used to calculate
+-- | the `d` to be used as the associated data. If not, nothing happens.
 selectWith :: forall f d a
     . Foldable f
-    => d
-    -> (a -> IsSelected)
+    => (a -> Maybe d)
     -> SelectionFoldableWithData f d a
     -> SelectionFoldableWithData f d a
-selectWith d p (Private_ xs curMSel) = (Private_ xs newMSel) where
+selectWith f (Private_ xs curMSel) = (Private_ xs newMSel) where
     newMSel :: Maybe (Tuple d a)
     newMSel = case found of
-        Just x -> Just $ Tuple d x
+        Just t -> Just $ Tuple t.d t.x
         Nothing -> curMSel
 
-    found :: Maybe a
+    found :: Maybe { d :: d, x :: a }
     found = foldl accFn Nothing xs
 
-    accFn :: Maybe a -> a -> Maybe a
+    accFn :: Maybe { d :: d, x :: a } -> a -> Maybe { d :: d, x :: a }
     accFn z x = case z of
         Just _ -> z
-        Nothing -> if p x then Just x else Nothing
+        Nothing -> map (\d -> { d, x }) (f x)
 
 -- | Selects the element at index `i'` such that `i' == i`. If such an element
--- | is found, it is selected and the provided `d` is used as the associated
--- | data. If not, nothing happens.
+-- | is found, it is selected and the provided function `p` is used to calculate
+-- | the `d` to be used as the associated data. If not, nothing happens.
 selectIndex :: forall i f d a
     . FoldableWithIndex i f
     => Eq i
-    => d
+    => (a -> d)
     -> i
     -> SelectionFoldableWithData f d a
     -> SelectionFoldableWithData f d a
-selectIndex d i = selectWithIndex d (\i' _ -> i == i')
+selectIndex f i =
+    selectWithIndex (\i' x -> if i == i' then Just (f x) else Nothing)
 
--- | Selects the first element `a` such that `p i a == true` where `i` is the
+-- | Selects the first element `a` such that `p i a == Just d` where `i` is the
 -- | index of `a`. If such an element is found, it is selected and the provided
 -- | `d` is used as the associated data. If not, nothing happens.
 selectWithIndex :: forall i f d a
     . FoldableWithIndex i f
-    => d
-    -> (i -> a -> IsSelected)
+    => (i -> a -> Maybe d)
     -> SelectionFoldableWithData f d a
     -> SelectionFoldableWithData f d a
-selectWithIndex d p (Private_ xs curMSel) = (Private_ xs newMSel) where
+selectWithIndex f (Private_ xs curMSel) = (Private_ xs newMSel) where
     newMSel :: Maybe (Tuple d a)
     newMSel = case found of
-        Just (Tuple i x) -> Just (Tuple d x)
+        Just t -> Just (Tuple t.d t.x)
         Nothing -> curMSel
 
-    found :: Maybe (Tuple i a)
+    found :: Maybe { i :: i, d :: d, x :: a }
     found = foldlWithIndex accFn Nothing xs
 
-    accFn :: i -> Maybe (Tuple i a) -> a -> Maybe (Tuple i a)
+    accFn ::
+        i
+        -> Maybe { i :: i, d :: d, x :: a }
+        -> a
+        -> Maybe { i :: i, d :: d, x :: a }
     accFn i z x = case z of
         Just _ -> z
-        Nothing -> if p i x then Just (Tuple i x) else Nothing
+        Nothing -> map (\d -> { i, d, x }) (f i x)
 
 -- | Clears the selection and its associated data.
 deselect :: forall f d a. SelectionFoldableWithData f d a -> SelectionFoldableWithData f d a
